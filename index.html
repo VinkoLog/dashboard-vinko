@@ -823,18 +823,17 @@ function initDashboard() {
   document.getElementById('footer-gerado').textContent =
     now.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Auto-preencher range de datas com min/max dos dados
+  // Auto-preencher range de datas: início = primeiro registro, fim = hoje
   const datas = RAW.map(r => r.criado_em).filter(Boolean).sort();
   if (datas.length) {
-    const dMin = datas[0].substring(0,10);          // "YYYY-MM-DD"
-    const dMax = datas[datas.length-1].substring(0,10);
+    const dMin = datas[0].substring(0,10);  // primeiro registro dos dados
+    const hoje = new Date();
+    const dHoje = hoje.getFullYear() + '-'
+      + String(hoje.getMonth()+1).padStart(2,'0') + '-'
+      + String(hoje.getDate()).padStart(2,'0');
     document.getElementById('f-data-de').value  = dMin;
-    document.getElementById('f-data-ate').value = dMax;
-    // Definir limites clicáveis no calendário
-    document.getElementById('f-data-de').min  = dMin;
-    document.getElementById('f-data-de').max  = dMax;
-    document.getElementById('f-data-ate').min = dMin;
-    document.getElementById('f-data-ate').max = dMax;
+    document.getElementById('f-data-ate').value = dHoje;
+    // Sem restrição de min/max — calendário fica totalmente livre
   }
 
   populateFilters();
@@ -860,20 +859,39 @@ function fill(id, arr) {
 function onMesChange() {
   const mes = document.getElementById('f-mes').value;
   if (!mes) {
-    // Limpar datas se desmarcar o mês
-    document.getElementById('f-data-de').value  = '';
-    document.getElementById('f-data-ate').value = '';
+    // Ao limpar mês rápido, restaura De=primeiro registro e Até=hoje
+    const datas = RAW.map(r => r.criado_em).filter(Boolean).sort();
+    if (datas.length) {
+      const hoje = new Date();
+      const dHoje = hoje.getFullYear() + '-'
+        + String(hoje.getMonth()+1).padStart(2,'0') + '-'
+        + String(hoje.getDate()).padStart(2,'0');
+      document.getElementById('f-data-de').value  = datas[0].substring(0,10);
+      document.getElementById('f-data-ate').value = dHoje;
+    }
     applyFilters();
     return;
   }
-  // Detectar ano a partir dos dados carregados
+  // Usar o ano atual (não o último ano dos dados) para meses futuros/correntes
+  const anoAtual = new Date().getFullYear();
   const anos = [...new Set(RAW.map(r => r.ano).filter(Boolean))].sort();
-  const ano  = anos.length === 1 ? anos[0] : (anos[anos.length - 1] || new Date().getFullYear());
   const m    = parseInt(mes);
   const pad  = n => String(n).padStart(2,'0');
+  // Se o mês selecionado tem dados, usa o ano desses dados; senão usa ano atual
+  const temDados = RAW.some(r => r.mes === m);
+  const ano = temDados
+    ? (anos.find(a => RAW.some(r => r.ano === a && r.mes === m)) || anoAtual)
+    : anoAtual;
   const ultimo = new Date(ano, m, 0).getDate(); // último dia do mês
+  // Para o mês atual, limita o fim à data de hoje
+  const hoje = new Date();
+  const esteAno  = hoje.getFullYear();
+  const esteMes  = hoje.getMonth() + 1;
+  const fimStr   = (ano === esteAno && m === esteMes)
+    ? `${ano}-${pad(m)}-${pad(hoje.getDate())}`   // até hoje
+    : `${ano}-${pad(m)}-${pad(ultimo)}`;           // até o fim do mês
   document.getElementById('f-data-de').value  = `${ano}-${pad(m)}-01`;
-  document.getElementById('f-data-ate').value = `${ano}-${pad(m)}-${pad(ultimo)}`;
+  document.getElementById('f-data-ate').value = fimStr;
   applyFilters();
 }
 
