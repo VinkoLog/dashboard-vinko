@@ -735,25 +735,39 @@ function trocarArquivo() {
 
 /* ══════════ PROCESS ROWS FROM XLSX ══════════ */
 function processRows(rows) {
-  // Map column names — adapts to slight naming changes
+  // Map column names — busca por múltiplos termos alternativos para cada coluna
+  // Isso garante compatibilidade mesmo que o Pipefy mude o nome das colunas
   const COL = {
-    criado:    findCol(rows,'Criado em'),
-    unidade:   findCol(rows,'unidade','Região'),
-    solicit:   findCol(rows,'solicitante'),
-    fonte:     findCol(rows,'Fonte de origem'),
-    carga:     findCol(rows,'Tipo de carga'),
-    modal:     findCol(rows,'Modalidade'),
-    resp:      findCol(rows,'Respons'),
-    docs:      findCol(rows,'Documentos estão'),
-    faltantes: findCol(rows,'faltantes'),
-    manifesto: findCol(rows,'manifesto'),
-    carregam:  findCol(rows,'carregamento'),
-    custo:     findCol(rows,'recebimento do custo'),
-    emMin:     findCol(rows,'Em emissão (dias)'),
-    aguardMin: findCol(rows,'Aguardando custo (dias)'),
-    triaMin:   findCol(rows,'Triagem (dias)'),
-    pendMin:   findCol(rows,'Pendentes (dias)'),
+    criado:    findCol(rows,'Criado em','criado em','Created'),
+    unidade:   findCol(rows,'unidade','Região','region','filial'),
+    solicit:   findCol(rows,'solicitante','Nome do solicitante','requester'),
+    fonte:     findCol(rows,'Fonte de origem','fonte de origem','origem do caminhoneiro','prospecção'),
+    carga:     findCol(rows,'Tipo de carga','tipo de carga','carga'),
+    modal:     findCol(rows,'Modalidade','modalidade'),
+    resp:      findCol(rows,'Responsável por executar','Respons','executor','assignee'),
+    docs:      findCol(rows,'Documentos estão','documentos estão','documentos'),
+    faltantes: findCol(rows,'faltantes','Quais documentos','documentos faltantes'),
+    manifesto: findCol(rows,'manifesto','Pendente liberar','liberar manifesto'),
+    carregam:  findCol(rows,'carregamento','Data e hora do carregamento','hora do carregamento'),
+    // Custo: busca por múltiplos termos — coluna pode mudar de posição entre exportações
+    custo:     findCol(rows,'recebimento do custo','Data e hora do recebimento','recebimento custo','hora do custo','recebimento'),
+    emMin:     findCol(rows,'Em emissão (dias)','emissão (dias)','total na fase Em emissão'),
+    aguardMin: findCol(rows,'Aguardando custo (dias)','aguardando custo (dias)','total na fase Aguardando'),
+    triaMin:   findCol(rows,'Triagem (dias)','triagem (dias)','total na fase Triagem'),
+    pendMin:   findCol(rows,'Pendentes (dias)','pendentes (dias)','total na fase Pendentes'),
   };
+
+  // Diagnóstico: loga no console quais colunas foram encontradas
+  // (pressione F12 → Console no navegador para ver)
+  console.group('📊 Dashboard VINKO — Mapeamento de colunas');
+  Object.entries(COL).forEach(([k, v]) => {
+    console.log(`  ${v ? '✅' : '❌'} ${k}: "${v || 'NÃO ENCONTRADO'}"`);
+  });
+  if (!COL.custo) {
+    console.warn('⚠️ ATENÇÃO: coluna de recebimento do custo não encontrada!');
+    console.warn('Colunas disponíveis:', Object.keys(rows[0] || {}));
+  }
+  console.groupEnd();
 
   return rows.map(r => {
     const criado   = toDate(r[COL.criado]);
@@ -992,6 +1006,24 @@ function mkChart(id,type,labels,datasets,opts={}){
 
 /* ══════════ RENDER ALL ══════════ */
 function renderAll(){
+  // Alerta visual se coluna de custo não for encontrada
+  const semTurnosPct = FILTERED.length
+    ? FILTERED.filter(r => r.turno === 'Sem dados').length / FILTERED.length * 100
+    : 0;
+  const alertEl = document.getElementById('alert-bar');
+  if (semTurnosPct > 50) {
+    alertEl.style.background = '#fed7d7';
+    alertEl.style.borderLeftColor = '#e53e3e';
+    alertEl.style.color = '#742a2a';
+    document.getElementById('alert-text').innerHTML =
+      `⚠️ <strong>${semTurnosPct.toFixed(0)}% dos cards estão como "Sem dados" no turno</strong> — `+
+      `possível problema no mapeamento da coluna de recebimento do custo. `+
+      `Abra o console (F12) para diagnóstico detalhado.`;
+  } else {
+    alertEl.style.background = '';
+    alertEl.style.borderLeftColor = '';
+    alertEl.style.color = '';
+  }
   renderKPIs();
   renderUnidade();
   renderFonte();
