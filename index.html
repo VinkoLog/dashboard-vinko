@@ -392,8 +392,8 @@ function processRows(rows){
     fonte:     findCol(keys,'Fonte de origem do caminhoneiro:','Fonte de origem'),
     carga:     findCol(keys,'Tipo de carga'),
     modal:     findCol(keys,'Modalidade'),
-    // Responsável: pega o ÚLTIMO 'por executar' → col W em julho, col única em junho
-    resp:      findCol(keys,'Responsável por executar','por executar'),
+    // Responsável: pega o ÚLTIMO 'por executar' → col W (.1) em julho, col única em junho
+    resp:      findCol(keys,'Responsável por executar.1','por executar.1','por executar','Responsável por executar'),
     docs:      findCol(keys,'Documentos estão:','Documentos estão'),
     faltantes: findCol(keys,'Quais documentos faltantes:','faltantes'),
     manifesto: findCol(keys,'Pendente liberar o manifesto?','manifesto'),
