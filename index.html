@@ -399,6 +399,8 @@ function processRows(rows){
     manifesto: findCol(keys,'Pendente liberar o manifesto?','manifesto'),
     carregam:  findCol(keys,'Data e hora do carregamento','carregamento'),
     custo:     findCol(keys,'Data e hora do recebimento do custo','recebimento do custo','recebimento'),
+    // Col Q: primeira vez que entrou em emissão (para calcular Custo → Emissão)
+    emissaoIn: findCol(keys,'Primeira vez que entrou na fase Em emissão','entrou na fase Em emissão','Em emissão'),
     emMin:     findCol(keys,'Tempo total na fase Em emissão (dias)','Em emissão (dias)'),
     aguardMin: findCol(keys,'Tempo total na fase Aguardando custo (dias)','Aguardando custo (dias)'),
     triaMin:   findCol(keys,'Tempo total na fase Triagem (dias)','Triagem (dias)'),
@@ -412,6 +414,12 @@ function processRows(rows){
   return rows.map(r=>{
     const criado=toDate(r[COL.criado]),carregam=toDate(r[COL.carregam]),custo=toDate(r[COL.custo]);
     const carg_custo=(carregam&&custo&&custo>carregam)?(custo-carregam)/3.6e6:null;
+    // Chegada Custo → Em Emissão: Col N (custo) × Col Q (entrada emissão)
+    const emissaoIn = toDate(r[COL.emissaoIn]);
+    const ce_hrs = (custo && emissaoIn && emissaoIn > custo)
+      ? (emissaoIn - custo) / 3.6e6 : null;
+    // Carregamento × Custo: filtra outliers (>30 dias = erro de data na origem)
+    const cc_filtrado = (carg_custo && carg_custo <= 720) ? carg_custo : null;
     return{
       criado_em:criado?criado.toISOString():'',
       unidade:r[COL.unidade]||'',solicitante:r[COL.solicit]||'',
@@ -421,9 +429,11 @@ function processRows(rows){
       pendente_manifesto:r[COL.manifesto]||'',
       turno:getTurno(custo),
       ano:criado?criado.getFullYear():null,mes:criado?criado.getMonth()+1:null,
-      triagem_hrs:toNum(r[COL.triaMin])*24,aguard_custo_hrs:toNum(r[COL.aguardMin])*24,
-      emissao_hrs:toNum(r[COL.emMin])*24,pendentes_hrs:toNum(r[COL.pendMin])*24,
-      carg_custo_hrs:carg_custo,
+      triagem_hrs:toNum(r[COL.triaMin])*24,
+      aguard_custo_hrs:ce_hrs,          // Chegada Custo → Em Emissão (N × Q)
+      emissao_hrs:toNum(r[COL.emMin])*24,
+      pendentes_hrs:toNum(r[COL.pendMin])*24,
+      carg_custo_hrs:cc_filtrado,       // Carregamento → Custo (H × N, sem outliers)
     };
   });
 }
@@ -609,7 +619,7 @@ function renderFilas(){
     const el=document.getElementById(pre+'-med');el.textContent=fmtH(s.avg);el.className='fila-val '+s.cls;
     document.getElementById(pre+'-max').textContent=fmtH(s.max);};
   set('tri',st(vv('triagem_hrs',48),2,5));set('cc',st(vv('carg_custo_hrs',720),24,72));
-  set('ce',st(vv('aguard_custo_hrs',720),8,24));set('pf',st(vv('pendentes_hrs',200),24,72));
+  set('ce',st(vv('aguard_custo_hrs',336),8,24));set('pf',st(vv('pendentes_hrs',720),24,72));
 }
 function renderPendencias(){
   const pend=FILTERED.filter(r=>r.docs_status==='Faltantes'&&r.docs_faltantes);
