@@ -274,7 +274,7 @@ tr:nth-child(even) td{background:#f8faf9}
   <div class="card"><div class="section-title">Chegada do Custo por Turno <span id="lbl-turno">—</span></div><div class="chart-container tall"><canvas id="chart-turno"></canvas></div></div>
 </div>
 <div class="grid-2">
-  <div class="card"><div class="section-title">Solicitações por Usuário e Região <span id="lbl-sol">top 15</span></div><div class="chart-container tall"><canvas id="chart-solicitante"></canvas></div></div>
+  <div class="card"><div class="section-title">Solicitações por Usuário e Região <span id="lbl-sol">top 20</span></div><div class="chart-container tall"><canvas id="chart-solicitante"></canvas></div></div>
   <div class="card"><div class="section-title">Tipo de Carga <span id="lbl-carga">—</span></div><div class="chart-container tall"><canvas id="chart-carga"></canvas></div></div>
 </div>
 <div class="grid-2">
@@ -602,8 +602,8 @@ function renderKPIs(){
 function renderUnidade(){const s=sorted(groupBy('unidade'));document.getElementById('lbl-unid').textContent=s.length+' filiais';mkChart('chart-unidade','bar',s.map(([k])=>k.replace(' - ','\n')),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>i===0?'#AFE607':'#0A4438'),borderRadius:4,label:'Cards'}])}
 function renderFonte(){const s=sorted(groupBy('fonte_origem'));document.getElementById('lbl-fonte').textContent=s.length+' canais';mkChart('chart-fonte','doughnut',s.map(([k])=>k),[{data:s.map(([,v])=>v),backgroundColor:['#0A4438','#AFE607','#6F7072','#2d9e7e'],borderWidth:2,borderColor:'#fff'}],{legend:true,extra:{plugins:{legend:{position:'bottom'}}}})}
 function renderTurno(){const order=['Turno A','Turno A/B','Turno B','Turno C','Sem dados'];const grp=groupBy('turno');const lbls=order.filter(t=>grp[t]);mkChart('chart-turno','bar',lbls,[{data:lbls.map(t=>grp[t]||0),backgroundColor:['#0A4438','#AFE607','#2d9e7e','#6F7072','#ccc'],borderRadius:4,label:'Cards'}])}
-function renderSolicitante(){const s=sorted(groupBy('solicitante'),15);mkChart('chart-solicitante','bar',s.map(([k])=>k.length>22?k.substring(0,20)+'…':k),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>PAL[i%PAL.length]),borderRadius:3,label:'Solic.'}])}
-function renderCarga(){const s=sorted(groupBy('tipo_carga'),10);document.getElementById('lbl-carga').textContent=s.length+' tipos';mkChart('chart-carga','bar',s.map(([k])=>k),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>PAL[i%PAL.length]),borderRadius:3,label:'Cards'}])}
+function renderSolicitante(){const s=sorted(groupBy('solicitante'),20);mkChart('chart-solicitante','bar',s.map(([k])=>k.length>22?k.substring(0,20)+'…':k),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>PAL[i%PAL.length]),borderRadius:3,label:'Solic.'}])}
+function renderCarga(){const s=sorted(groupBy('tipo_carga'),3);document.getElementById('lbl-carga').textContent='TOP 3';mkChart('chart-carga','bar',s.map(([k])=>k),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>PAL[i%PAL.length]),borderRadius:3,label:'Cards'}])}
 function renderResponsavel(){const s=sorted(groupBy('responsavel'));document.getElementById('lbl-resp').textContent=s.length+' executores';mkChart('chart-responsavel','bar',s.map(([k])=>k),[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>PAL[i%PAL.length]),borderRadius:4,label:'Cards'}])}
 function renderEmissaoResp(){
   const acc={};
