@@ -392,19 +392,17 @@ function processRows(rows){
     fonte:     findCol(keys,'Fonte de origem do caminhoneiro:','Fonte de origem'),
     carga:     findCol(keys,'Tipo de carga'),
     modal:     findCol(keys,'Modalidade'),
-    // Responsável: pega o ÚLTIMO 'por executar' → col W (.1) em julho, col única em junho
     resp:      findCol(keys,'Responsável por executar.1','por executar.1','por executar','Responsável por executar'),
     docs:      findCol(keys,'Documentos estão:','Documentos estão'),
     faltantes: findCol(keys,'Quais documentos faltantes:','faltantes'),
     manifesto: findCol(keys,'Pendente liberar o manifesto?','manifesto'),
     carregam:  findCol(keys,'Data e hora do carregamento','carregamento'),
     custo:     findCol(keys,'Data e hora do recebimento do custo','recebimento do custo','recebimento'),
-    // Col Q: primeira vez que entrou em emissão (para calcular Custo → Emissão)
-    emissaoIn: findCol(keys,'Primeira vez que entrou na fase Em emissão','entrou na fase Em emissão','Em emissão'),
     emMin:     findCol(keys,'Tempo total na fase Em emissão (dias)','Em emissão (dias)'),
     aguardMin: findCol(keys,'Tempo total na fase Aguardando custo (dias)','Aguardando custo (dias)'),
     triaMin:   findCol(keys,'Tempo total na fase Triagem (dias)','Triagem (dias)'),
     pendMin:   findCol(keys,'Tempo total na fase Pendentes (dias)','Pendentes (dias)'),
+    emissaoIn: findCol(keys,'Primeira vez que entrou na fase Em emissão','entrou na fase Em emissão'),
   };
   // Diagnóstico no console (F12)
   console.group('📊 Dashboard VINKO — Mapeamento de colunas');
